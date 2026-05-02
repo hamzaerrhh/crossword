@@ -11,6 +11,12 @@ describe("crosswordSolver", () => {
     logSpy.mockRestore();
   });
 
+  test("simple linear puzzle", () => {
+    crosswordSolver("100100", ["abb", "baa"]);
+
+    expect(logSpy).toHaveBeenCalled();
+  });
+
   test("basic 4x4 puzzle", () => {
     const puzzle = `2001
 0..0
@@ -93,8 +99,6 @@ o..n`,
       "seaside",
       "sandals",
     ].reverse();
-
-    
 
     crosswordSolver(puzzle, words);
 
