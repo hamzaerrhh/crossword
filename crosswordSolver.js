@@ -188,7 +188,10 @@ function crosswordSolver(puzzle, words) {
     console.log(result);
   }
 }
+// crosswordSolver("100...10", ["ba", "aab"])
 
 crosswordSolver("", ["a", "b"]);
+crosswordSolver("10100", ["aab", "bbb"]);
+
 
 module.exports = crosswordSolver;
