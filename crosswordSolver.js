@@ -234,12 +234,12 @@ function crosswordSolver(puzzle, words) {
     console.log(result);
   }
 }
-const puzzle = `2001
-0..0
-1000
-0..0`;
+// const puzzle = `2001
+// 0..0
+// 1000
+// 0..0`;
 
-const words = ["casa", "alan", "ciao", "anta"];
-crosswordSolver(puzzle, words);
-crosswordSolver("10100", ["aab", "bbb"]);
+// const words = ["casa", "alan", "ciao", "anta"];
+// crosswordSolver(puzzle, words);
+// crosswordSolver("10100", ["aab", "bbb"]);
 module.exports = crosswordSolver;
