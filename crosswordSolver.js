@@ -16,13 +16,11 @@ function crosswordSolver(puzzle, words) {
 
   // ---------- CLUE HELPERS (digits = total orthogonal word starts from that square) ----------
   function geometricHorizontalWordStart(i, j) {
-    if (grid[i][j] === ".") return false;
     if (!(j + 1 < gridWidth && grid[i][j + 1] !== ".")) return false;
     return j === 0 || grid[i][j - 1] === ".";
   }
 
   function geometricVerticalWordStart(i, j) {
-    if (grid[i][j] === ".") return false;
     if (!(i + 1 < h && grid[i + 1][j] !== ".")) return false;
     return i === 0 || grid[i - 1][j] === ".";
   }

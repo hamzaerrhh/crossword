@@ -208,4 +208,74 @@ pork..pasta
 
     expect(logSpy).toHaveBeenCalledWith("Error");
   });
+  test("empty words array -> Error", () => {
+    crosswordSolver("100", []);
+
+    expect(logSpy).toHaveBeenCalledWith("Error");
+  });
+
+  test("words contains empty string -> Error", () => {
+    crosswordSolver("100", [""]);
+
+    expect(logSpy).toHaveBeenCalledWith("Error");
+  });
+
+  test("not enough words -> Error", () => {
+    crosswordSolver("10100", ["abc"]);
+
+    expect(logSpy).toHaveBeenCalledWith("Error");
+  });
+
+  test("too many words -> Error", () => {
+    crosswordSolver("100", ["ab", "cd"]);
+
+    expect(logSpy).toHaveBeenCalledWith("Error");
+  });
+
+  test("word does not fit slot length -> Error", () => {
+    crosswordSolver("100", ["abcd"]);
+
+    expect(logSpy).toHaveBeenCalledWith("Error");
+  });
+
+  test("single letter slot should be invalid -> Error", () => {
+    const puzzle = `1..
+...`;
+
+    const words = ["ab"];
+
+    crosswordSolver(puzzle, words);
+
+    expect(logSpy).toHaveBeenCalledWith("Error");
+  });
+
+  test("puzzle with only walls -> Error", () => {
+    crosswordSolver("...\n...\n...", ["abc"]);
+
+    expect(logSpy).toHaveBeenCalledWith("Error");
+  });
+
+  test("no starting points but words provided -> Error", () => {
+    crosswordSolver("000", ["abc"]);
+
+    expect(logSpy).toHaveBeenCalledWith("Error");
+  });
+
+  test("words contain non-string -> Error", () => {
+    crosswordSolver("100", ["abc", 123]);
+
+    expect(logSpy).toHaveBeenCalledWith("Error");
+  });
+
+  test("invalid puzzle characters -> Error", () => {
+    crosswordSolver("10a0", ["ab", "cd"]);
+
+    expect(logSpy).toHaveBeenCalledWith("Error");
+  });
+
+  test("overlapping letters mismatch -> Error", () => {
+    crosswordSolver("10100", ["abc", "ddd"]);
+
+    expect(logSpy).toHaveBeenCalledWith("Error");
+  });
 });
