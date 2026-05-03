@@ -1,6 +1,6 @@
 const crosswordSolver = require("./crosswordSolver");
 
-describe("crosswordSolver", () => {
+describe("AUDIT TESTS", () => {
   let logSpy;
 
   beforeEach(() => {
@@ -10,13 +10,8 @@ describe("crosswordSolver", () => {
   afterEach(() => {
     logSpy.mockRestore();
   });
-  test("simple linear puzzle", () => {
-    crosswordSolver("10100", ["aab", "bbb"]);
 
-    expect(logSpy).toHaveBeenCalledWith("aabbb");
-  });
-
-  test("basic 4x4 puzzle", () => {
+  test("AUDIT 1 --> basic 4x4 puzzle", () => {
     const puzzle = `2001
 0..0
 1000
@@ -33,8 +28,7 @@ anta
 o..n`,
     );
   });
-
-  test("big puzzle (valid solution)", () => {
+  test("AUDIT 2 --> big puzzle (valid solution)", () => {
     const puzzle = `...1...........
 ..1000001000...
 ...0....0......
@@ -82,8 +76,7 @@ bikini..r...n..
 ..........s....`,
     );
   });
-
-  test("food puzzle", () => {
+  test("AUDIT 3 --> food puzzle", () => {
     const puzzle = `..1.1..1...
 10000..1000
 ..0.0..0...
@@ -125,8 +118,55 @@ pork..pasta
 ....k......`,
     );
   });
+  test("AUDIT 4 --> big puzzle (valid solution)", () => {
+    const puzzle = `...1...........
+..1000001000...
+...0....0......
+.1......0...1..
+.0....100000000
+100000..0...0..
+.0.....1001000.
+.0.1....0.0....
+.10000000.0....
+.0.0......0....
+.0.0.....100...
+...0......0....
+..........0....`;
 
-  test("invalid duplicate words", () => {
+    const words = [
+      "sun",
+      "sunglasses",
+      "suncream",
+      "swimming",
+      "bikini",
+      "beach",
+      "icecream",
+      "tan",
+      "deckchair",
+      "sand",
+      "seaside",
+      "sandals",
+    ].reverse();
+
+    crosswordSolver(puzzle, words);
+
+    expect(logSpy).toHaveBeenCalledWith(
+      `...s...........
+..sunglasses...
+...n....u......
+.s......n...s..
+.w....deckchair
+bikini..r...n..
+.m.....seaside.
+.m.b....a.a....
+.icecream.n....
+.n.a......d....
+.g.c.....tan...
+...h......l....
+..........s....`,
+    );
+  });
+  test("AUDIT 5 --> invalid duplicate words", () => {
     const puzzle = `2001
 0..0
 1000
@@ -138,39 +178,54 @@ pork..pasta
 
     expect(logSpy).toHaveBeenCalledWith("Error");
   });
-
-  test("empty puzzle", () => {
-    crosswordSolver("", ["a", "b"]);
-
-    expect(logSpy).toHaveBeenCalledWith("Error");
-  });
-
-  test("wrong format puzzle", () => {
-    crosswordSolver(123, ["a", "b"]);
-
-    expect(logSpy).toHaveBeenCalledWith("Error");
-  });
-
-  test("wrong format words", () => {
-    crosswordSolver("2001\n0..0\n1000\n0..0", 123);
-
-    expect(logSpy).toHaveBeenCalledWith("Error");
-  });
-
-  test("multiple solutions -> Error", () => {
-    const puzzle = `2000
-0...
-0...
-0...`;
-
-    const words = ["abba", "assa"];
+  test("AUDIT 6 --> test starting words higher than 2", () => {
+    const puzzle = "0001\n0..0\n3000\n0..0";
+    const words = ["casa", "alan", "ciao", "anta"];
 
     crosswordSolver(puzzle, words);
 
     expect(logSpy).toHaveBeenCalledWith("Error");
   });
+  test("AUDIT 7 --> Test words repetition", () => {
+    const puzzle = "2001\n0..0\n1000\n0..0";
+    const words = ["casa", "casa", "ciao", "anta"];
+    crosswordSolver(puzzle, words);
 
-  test("no solution -> Error", () => {
+    expect(logSpy).toHaveBeenCalledWith("Error");
+  });
+
+  test("AUDIT 8 --> empty puzzle", () => {
+    const puzzle = "";
+    const words = ["casa", "alan", "ciao", "anta"];
+    crosswordSolver(puzzle, words);
+
+    expect(logSpy).toHaveBeenCalledWith("Error");
+  });
+
+  test("AUDIT 9 --> wrong format puzzle", () => {
+    const puzzle = 123;
+    const words = ["casa", "alan", "ciao", "anta"];
+    crosswordSolver(puzzle, words);
+
+    expect(logSpy).toHaveBeenCalledWith("Error");
+  });
+  test("AUDIT 10  --> Test wrong format checks", () => {
+    const puzzle = "";
+    const words = 123;
+    crosswordSolver(puzzle, words);
+
+    expect(logSpy).toHaveBeenCalledWith("Error");
+  });
+
+  test("AUDIT 11  --> Test multiple solutions", () => {
+    const puzzle = "2000\n0...\n0...\n0...";
+    const words = ["abba", "assa"];
+    crosswordSolver(puzzle, words);
+
+    expect(logSpy).toHaveBeenCalledWith("Error");
+  });
+
+  test("AUDIT 12  --> Test no solution", () => {
     const puzzle = `2001
 0..0
 1000
@@ -181,6 +236,18 @@ pork..pasta
     crosswordSolver(puzzle, words);
 
     expect(logSpy).toHaveBeenCalledWith("Error");
+  });
+});
+
+describe("RANDOM TESTS", () => {
+  let logSpy;
+
+  beforeEach(() => {
+    logSpy = jest.spyOn(console, "log").mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    logSpy.mockRestore();
   });
 
   test("invalid clue mismatch -> Error", () => {
@@ -271,6 +338,11 @@ pork..pasta
     crosswordSolver("10a0", ["ab", "cd"]);
 
     expect(logSpy).toHaveBeenCalledWith("Error");
+  });
+  test("simple linear puzzle", () => {
+    crosswordSolver("10100", ["aab", "bbb"]);
+
+    expect(logSpy).toHaveBeenCalledWith("aabbb");
   });
 
   test("overlapping letters mismatch -> Error", () => {
