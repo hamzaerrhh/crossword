@@ -47,83 +47,47 @@ function buildSlots(grid, explicitHStart, explicitVStart, wordLensSet) {
   const w = grid[0].length;
   const slots = [];
 
-  function contiguousRowEnd(i, j) {
-    let e = j;
-    while (e < w && grid[i][e] !== ".") e++;
-    return e;
-  }
+  function slotLen(i, j, dir) {
+    const isH = dir === "h";
+    const limit = isH ? w : h;
+    const starts = isH ? explicitHStart : explicitVStart;
 
-  function contiguousColEnd(i, j) {
-    let e = i;
-    while (e < h && grid[e][j] !== ".") e++;
-    return e;
-  }
+    let end = isH ? j : i;
+    while (end < limit && grid[isH ? i : end][isH ? end : j] !== ".") end++;
 
-  function horizontalSlotLen(i, j) {
-    const end = contiguousRowEnd(i, j);
-    let nextA = null;
-    for (let q = j + 1; q < end; q++) {
-      if (explicitHStart.has(`${i},${q}`)) {
-        nextA = q;
+    let next = null;
+    const from = isH ? j : i;
+    for (let q = from + 1; q < end; q++) {
+      const key = isH ? `${i},${q}` : `${q},${j}`;
+      if (starts.has(key)) {
+        next = q;
         break;
       }
     }
-    if (nextA === null) {
-      const len = end - j;
+
+    if (next === null) {
+      const len = end - from;
       return wordLensSet.has(len) ? len : null;
     }
-    const gap = nextA - j;
+
+    const gap = next - from;
     if (wordLensSet.has(gap + 1)) return gap + 1;
     if (wordLensSet.has(gap)) return gap;
-    const full = end - j;
+    const full = end - from;
     return wordLensSet.has(full) ? full : null;
   }
 
-  function verticalSlotLen(i, j) {
-    const end = contiguousColEnd(i, j);
-    let nextA = null;
-    for (let q = i + 1; q < end; q++) {
-      if (explicitVStart.has(`${q},${j}`)) {
-        nextA = q;
-        break;
-      }
-    }
-    if (nextA === null) {
-      const len = end - i;
-      return wordLensSet.has(len) ? len : null;
-    }
-    const gap = nextA - i;
-    if (wordLensSet.has(gap + 1)) return gap + 1;
-    if (wordLensSet.has(gap)) return gap;
-    const full = end - i;
-    return wordLensSet.has(full) ? full : null;
+  for (const key of explicitHStart) {
+    const [i, j] = key.split(",").map(Number);
+    const len = slotLen(i, j, "h");
+    if (len !== null) slots.push({ i, j, dir: "h", len });
   }
 
-  function isStart(i, j, dir) {
-    if (grid[i][j] === ".") return false;
-    if (dir === "h") {
-      if (!(j + 1 < w && grid[i][j + 1] !== ".")) return false;
-      if (explicitHStart.has(`${i},${j}`)) return true;
-      return j === 0 || grid[i][j - 1] === ".";
-    }
-    if (!(i + 1 < h && grid[i + 1][j] !== ".")) return false;
-    if (explicitVStart.has(`${i},${j}`)) return true;
-    return i === 0 || grid[i - 1][j] === ".";
+  for (const key of explicitVStart) {
+    const [i, j] = key.split(",").map(Number);
+    const len = slotLen(i, j, "v");
+    if (len !== null) slots.push({ i, j, dir: "v", len });
   }
-
-  for (let i = 0; i < h; i++)
-    for (let j = 0; j < w; j++)
-      if (isStart(i, j, "h")) {
-        const len = horizontalSlotLen(i, j);
-        if (len !== null) slots.push({ i, j, dir: "h", len });
-      }
-
-  for (let j = 0; j < w; j++)
-    for (let i = 0; i < h; i++)
-      if (isStart(i, j, "v")) {
-        const len = verticalSlotLen(i, j);
-        if (len !== null) slots.push({ i, j, dir: "v", len });
-      }
 
   return slots;
 }

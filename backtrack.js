@@ -28,24 +28,28 @@ function unplace(grid, changed) {
 
 function solve(grid, slots, words) {
   const used = new Array(words.length).fill(false);
+  console.log(used, words);
   let solutions = 0;
   let result = null;
 
   function backtrack(idx) {
     if (solutions > 1) return;
+
     if (idx === slots.length) {
       solutions++;
       result = grid.map((r) => r.join("")).join("\n");
       return;
     }
     const slot = slots[idx];
+
     for (let wi = 0; wi < words.length; wi++) {
       if (
         used[wi] ||
         words[wi].length !== slot.len ||
         !canPlace(grid, words[wi], slot)
-      )
+      ) {
         continue;
+      }
       used[wi] = true;
       const changed = place(grid, words[wi], slot);
       backtrack(idx + 1);
@@ -55,7 +59,7 @@ function solve(grid, slots, words) {
   }
 
   backtrack(0);
-  return { solutions, result };
+  return solutions === 1 ? result : null;
 }
 
 module.exports = { solve };

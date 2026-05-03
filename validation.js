@@ -4,6 +4,7 @@ const validateParams = (puzzle, words) => {
   if (new Set(words).size !== words.length) return false;
   if (!/^[0-9.\n]+$/.test(puzzle)) return false;
   if (!/[1-9]/.test(puzzle)) return false;
+  if (/[3-9]/.test(puzzle)) return false; // ← add this
   for (const w of words) {
     if (typeof w !== "string" || w === "") return false;
   }
