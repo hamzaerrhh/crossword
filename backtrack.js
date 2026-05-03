@@ -1,43 +1,32 @@
-
-
 function solve(grid, slots, words) {
-
-
-
-//helper function
-function canPlace( word, slot) {
-  const { i, j, dir } = slot;
-  for (let k = 0; k < word.length; k++) {
-    const r = dir === "h" ? i : i + k;
-    const c = dir === "h" ? j + k : j;
-    if (grid[r][c] !== "0" && grid[r][c] !== word[k]) return false;
-  }
-  return true;
-}
-
-function place( word, slot) {
-  const changed = [];
-  const { i, j, dir } = slot;
-  for (let k = 0; k < word.length; k++) {
-    const r = dir === "h" ? i : i + k;
-    const c = dir === "h" ? j + k : j;
-    if (grid[r][c] === "0") {
-      changed.push([r, c]);
-      grid[r][c] = word[k];
+  //helper function
+  function canPlace(word, slot) {
+    const { i, j, dir } = slot;
+    for (let k = 0; k < word.length; k++) {
+      const r = dir === "h" ? i : i + k;
+      const c = dir === "h" ? j + k : j;
+      if (grid[r][c] !== "0" && grid[r][c] !== word[k]) return false;
     }
+    return true;
   }
-  return changed;
-}
 
-function unplace( changed) {
-  for (const [r, c] of changed) grid[r][c] = "0";
-}
+  function place(word, slot) {
+    const changed = [];
+    const { i, j, dir } = slot;
+    for (let k = 0; k < word.length; k++) {
+      const r = dir === "h" ? i : i + k;
+      const c = dir === "h" ? j + k : j;
+      if (grid[r][c] === "0") {
+        changed.push([r, c]);
+        grid[r][c] = word[k];
+      }
+    }
+    return changed;
+  }
 
-
-
-
-
-
+  function unplace(changed) {
+    for (const [r, c] of changed) grid[r][c] = "0";
+  }
 
   const used = new Array(words.length).fill(false);
   console.log(used, words);
@@ -58,14 +47,15 @@ function unplace( changed) {
       if (
         used[wi] ||
         words[wi].length !== slot.len ||
-        !canPlace(grid, words[wi], slot)
+        !canPlace(words[wi], slot)
       ) {
+        place;
         continue;
       }
       used[wi] = true;
-      const changed = place(grid, words[wi], slot);
+      const changed = place(words[wi], slot);
       backtrack(idx + 1);
-      unplace(grid, changed);
+      unplace(changed);
       used[wi] = false;
     }
   }
