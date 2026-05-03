@@ -1,4 +1,8 @@
 const { validateParams } = require("./parsing");
+const {
+  geometricHorizontalWordStart,
+  geometricVerticalWordStart,
+} = require("./helper");
 function crosswordSolver(puzzle, words) {
   // ---------- VALIDATION ----------
   if (!validateParams(puzzle, words)) {
@@ -12,54 +16,46 @@ function crosswordSolver(puzzle, words) {
     .map((r) => r.split(""));
 
   const h = grid.length;
-  const w = grid[0].length;
+  const gridWidth = grid[0].length;
 
-  // ---------- COUNT WORD STARTS ----------
-  function countStarts(i, j) {
-    if (grid[i][j] === ".") return 0;
+  const explicitHStart = new Set();
+  const explicitVStart = new Set();
 
-    let count = 0;
-
-    // horizontal start
-    if (
-      (j === 0 || grid[i][j - 1] === ".") &&
-      j + 1 < w &&
-      grid[i][j + 1] !== "."
-    ) {
-      count++;
-    }
-
-    // vertical start
-    if (
-      (i === 0 || grid[i - 1][j] === ".") &&
-      i + 1 < h &&
-      grid[i + 1][j] !== "."
-    ) {
-      count++;
-    }
-
-    return count;
-  }
-
-  // validate clue numbers
+  /* validate numbered cells; anchored sets mark where Across/Down slots originate (overlap row/column handled as +1 Across or +1 Down) */
   for (let i = 0; i < h; i++) {
-    for (let j = 0; j < w; j++) {
+    for (let j = 0; j < gridWidth; j++) {
       const cell = grid[i][j];
-      if (cell !== "." && /[0-9]/.test(cell)) {
-        const expected = parseInt(cell, 10);
-        const actual = countStarts(i, j);
-        if (expected !== actual) {
-          console.log("Error");
-          return;
-        }
+      if (!/^[1-9]$/.test(cell)) continue;
+
+      const expected = parseInt(cell, 10);
+      const gh = geometricHorizontalWordStart(grid, i, j) ? 1 : 0;
+      const gv = geometricVerticalWordStart(grid, i, j) ? 1 : 0;
+      const base = gh + gv;
+
+      if (expected === base) {
+        if (gh) explicitHStart.add(`${i},${j}`);
+        if (gv) explicitVStart.add(`${i},${j}`);
+      } else if (expected === base + 1 && !gh) {
+        explicitHStart.add(`${i},${j}`);
+        if (gv) explicitVStart.add(`${i},${j}`);
+      } else if (expected === base + 1 && !gv && !gh) {
+        explicitVStart.add(`${i},${j}`);
+      } else {
+        console.log("Error");
+        return;
       }
     }
   }
+  if (explicitHStart.size == 0 && explicitVStart.size == 0) {
+    console.log("Error");
 
-  // replace digits with empty usable cells
+    return;
+  }
+
+  // replace clue digits with empty usable cells (keep playable blanks as "0")
   for (let i = 0; i < h; i++) {
-    for (let j = 0; j < w; j++) {
-      if (/[0-9]/.test(grid[i][j])) {
+    for (let j = 0; j < gridWidth; j++) {
+      if (/^[1-9]$/.test(grid[i][j])) {
         grid[i][j] = "0";
       }
     }
@@ -67,48 +63,92 @@ function crosswordSolver(puzzle, words) {
 
   // ---------- SLOT DETECTION ----------
   const slots = [];
+  const wordLensSet = new Set(words.map((word) => word.length));
+
+  function contiguousRowEnd(i, j) {
+    let e = j;
+    while (e < gridWidth && grid[i][e] !== ".") e++;
+    return e;
+  }
+
+  function contiguousColEnd(i, j) {
+    let e = i;
+    while (e < h && grid[e][j] !== ".") e++;
+    return e;
+  }
+
+  /** Len of the word starting at (i,j) horizontally: overlaps next numbered clue iff gap + 1 is a word length. */
+  function horizontalSlotLen(i, j) {
+    const endExclusive = contiguousRowEnd(i, j);
+    let nextA = null;
+    for (let q = j + 1; q < endExclusive; q++) {
+      if (explicitHStart.has(`${i},${q}`)) {
+        nextA = q;
+        break;
+      }
+    }
+    if (nextA === null) {
+      const len = endExclusive - j;
+      return wordLensSet.has(len) ? len : null;
+    }
+    const gap = nextA - j;
+    if (wordLensSet.has(gap + 1)) return gap + 1;
+    if (wordLensSet.has(gap)) return gap;
+    const full = endExclusive - j;
+    if (wordLensSet.has(full)) return full;
+    return null;
+  }
+
+  function verticalSlotLen(i, j) {
+    const endExclusive = contiguousColEnd(i, j);
+    let nextA = null;
+    for (let q = i + 1; q < endExclusive; q++) {
+      if (explicitVStart.has(`${q},${j}`)) {
+        nextA = q;
+        break;
+      }
+    }
+    if (nextA === null) {
+      const len = endExclusive - i;
+      return wordLensSet.has(len) ? len : null;
+    }
+    const gap = nextA - i;
+    if (wordLensSet.has(gap + 1)) return gap + 1;
+    if (wordLensSet.has(gap)) return gap;
+    const full = endExclusive - i;
+    if (wordLensSet.has(full)) return full;
+    return null;
+  }
 
   function isStart(i, j, dir) {
     if (grid[i][j] === ".") return false;
 
     if (dir === "h") {
-      return (
-        (j === 0 || grid[i][j - 1] === ".") &&
-        j + 1 < w &&
-        grid[i][j + 1] !== "."
-      );
-    } else {
-      return (
-        (i === 0 || grid[i - 1][j] === ".") &&
-        i + 1 < h &&
-        grid[i + 1][j] !== "."
-      );
+      if (!(j + 1 < gridWidth && grid[i][j + 1] !== ".")) return false;
+      if (explicitHStart.has(`${i},${j}`)) return true;
+      return j === 0 || grid[i][j - 1] === ".";
     }
+
+    if (!(i + 1 < h && grid[i + 1][j] !== ".")) return false;
+    if (explicitVStart.has(`${i},${j}`)) return true;
+    return i === 0 || grid[i - 1][j] === ".";
   }
 
-  // horizontal slots
   for (let i = 0; i < h; i++) {
-    let j = 0;
-    while (j < w) {
-      if (isStart(i, j, "h")) {
-        let len = 0;
-        while (j + len < w && grid[i][j + len] !== ".") len++;
-        slots.push({ i, j, dir: "h", len });
-      }
-      j++;
+    for (let j = 0; j < gridWidth; j++) {
+      if (!isStart(i, j, "h")) continue;
+      const len = horizontalSlotLen(i, j);
+      if (len === null) continue;
+      slots.push({ i, j, dir: "h", len });
     }
   }
 
-  // vertical slots
-  for (let j = 0; j < w; j++) {
-    let i = 0;
-    while (i < h) {
-      if (isStart(i, j, "v")) {
-        let len = 0;
-        while (i + len < h && grid[i + len][j] !== ".") len++;
-        slots.push({ i, j, dir: "v", len });
-      }
-      i++;
+  for (let j = 0; j < gridWidth; j++) {
+    for (let i = 0; i < h; i++) {
+      if (!isStart(i, j, "v")) continue;
+      const len = verticalSlotLen(i, j);
+      if (len === null) continue;
+      slots.push({ i, j, dir: "v", len });
     }
   }
 
@@ -165,18 +205,18 @@ function crosswordSolver(puzzle, words) {
 
     const slot = slots[idx];
 
-    for (let w = 0; w < words.length; w++) {
-      if (used[w]) continue;
-      if (words[w].length !== slot.len) continue;
-      if (!canPlace(words[w], slot)) continue;
+    for (let wi = 0; wi < words.length; wi++) {
+      if (used[wi]) continue;
+      if (words[wi].length !== slot.len) continue;
+      if (!canPlace(words[wi], slot)) continue;
 
-      used[w] = true;
-      const changed = place(words[w], slot);
+      used[wi] = true;
+      const changed = place(words[wi], slot);
 
       backtrack(idx + 1);
 
       unplace(changed);
-      used[w] = false;
+      used[wi] = false;
     }
   }
 
@@ -188,7 +228,12 @@ function crosswordSolver(puzzle, words) {
     console.log(result);
   }
 }
+// const puzzle = `2001
+// 0..0
+// 1000
+// 0..0`;
 
-crosswordSolver("", ["a", "b"]);
-
+// const words = ["casa", "alan", "ciao", "anta"];
+// crosswordSolver(puzzle, words);
+crosswordSolver("100", ["abcd"]);
 module.exports = crosswordSolver;

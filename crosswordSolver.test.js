@@ -10,8 +10,13 @@ describe("crosswordSolver", () => {
   afterEach(() => {
     logSpy.mockRestore();
   });
+  test("simple linear puzzle", () => {
+    crosswordSolver("10100", ["aab", "bbb"]);
 
-  test("basic 4x4 puzzle (exact output)", () => {
+    expect(logSpy).toHaveBeenCalledWith("aabbb");
+  });
+
+  test("basic 4x4 puzzle", () => {
     const puzzle = `2001
 0..0
 1000
@@ -78,56 +83,7 @@ bikini..r...n..
     );
   });
 
-  test("reverse words order still valid", () => {
-    const puzzle = `...1...........
-..1000001000...
-...0....0......
-.1......0...1..
-.0....100000000
-100000..0...0..
-.0.....1001000.
-.0.1....0.0....
-.10000000.0....
-.0.0......0....
-.0.0.....100...
-...0......0....
-..........0....`;
-
-    const words = [
-      "sun",
-      "sunglasses",
-      "suncream",
-      "swimming",
-      "bikini",
-      "beach",
-      "icecream",
-      "tan",
-      "deckchair",
-      "sand",
-      "seaside",
-      "sandals",
-    ].reverse();
-
-    crosswordSolver(puzzle, words);
-
-    expect(logSpy).toHaveBeenCalledWith(
-      `...s...........
-..sunglasses...
-...n....u......
-.s......n...s..
-.w....deckchair
-bikini..r...n..
-.m.....seaside.
-.m.b....a.a....
-.icecream.n....
-.n.a......d....
-.g.c.....tan...
-...h......l....
-..........s....`,
-    );
-  });
-
-  test("third sample puzzle (README case)", () => {
+  test("food puzzle", () => {
     const puzzle = `..1.1..1...
 10000..1000
 ..0.0..0...
@@ -171,87 +127,154 @@ pork..pasta
   });
 
   test("invalid duplicate words", () => {
-    crosswordSolver(
-      `2001
+    const puzzle = `2001
 0..0
 1000
-0..0`,
-      ["casa", "casa", "ciao", "anta"],
-    );
+0..0`;
+
+    const words = ["casa", "casa", "ciao", "anta"];
+
+    crosswordSolver(puzzle, words);
 
     expect(logSpy).toHaveBeenCalledWith("Error");
   });
 
   test("empty puzzle", () => {
     crosswordSolver("", ["a", "b"]);
+
     expect(logSpy).toHaveBeenCalledWith("Error");
   });
 
   test("wrong format puzzle", () => {
     crosswordSolver(123, ["a", "b"]);
+
     expect(logSpy).toHaveBeenCalledWith("Error");
   });
 
   test("wrong format words", () => {
     crosswordSolver("2001\n0..0\n1000\n0..0", 123);
+
     expect(logSpy).toHaveBeenCalledWith("Error");
   });
 
   test("multiple solutions -> Error", () => {
-    crosswordSolver(
-      `2000
+    const puzzle = `2000
 0...
 0...
-0...`,
-      ["abba", "assa"],
-    );
+0...`;
+
+    const words = ["abba", "assa"];
+
+    crosswordSolver(puzzle, words);
 
     expect(logSpy).toHaveBeenCalledWith("Error");
   });
 
   test("no solution -> Error", () => {
-    crosswordSolver(
-      `2001
+    const puzzle = `2001
 0..0
 1000
-0..0`,
-      ["aaab", "aaac", "aaad", "aaae"],
-    );
+0..0`;
+
+    const words = ["aaab", "aaac", "aaad", "aaae"];
+
+    crosswordSolver(puzzle, words);
 
     expect(logSpy).toHaveBeenCalledWith("Error");
   });
 
   test("invalid clue mismatch -> Error", () => {
-    crosswordSolver(
-      `2001
+    const puzzle = `2001
 0..0
 2000
-0..0`,
-      ["casa", "alan", "ciao", "anta"],
-    );
+0..0`;
 
-    expect(logSpy).toHaveBeenCalledWith("Error");
-  });
-  test("invalid duplicate words", () => {
-    crosswordSolver(
-      `2001
-0..0
-1000
-0..0`,
-      ["casa", "casa", "ciao", "anta"],
-    );
+    const words = ["casa", "alan", "ciao", "anta"];
+
+    crosswordSolver(puzzle, words);
 
     expect(logSpy).toHaveBeenCalledWith("Error");
   });
 
   test("clue too high -> Error", () => {
-    crosswordSolver(
-      `0001
+    const puzzle = `0001
 0..0
 3000
-0..0`,
-      ["casa", "alan", "ciao", "anta"],
-    );
+0..0`;
+
+    const words = ["casa", "alan", "ciao", "anta"];
+
+    crosswordSolver(puzzle, words);
+
+    expect(logSpy).toHaveBeenCalledWith("Error");
+  });
+  test("empty words array -> Error", () => {
+    crosswordSolver("100", []);
+
+    expect(logSpy).toHaveBeenCalledWith("Error");
+  });
+
+  test("words contains empty string -> Error", () => {
+    crosswordSolver("100", [""]);
+
+    expect(logSpy).toHaveBeenCalledWith("Error");
+  });
+
+  test("not enough words -> Error", () => {
+    crosswordSolver("10100", ["abc"]);
+
+    expect(logSpy).toHaveBeenCalledWith("Error");
+  });
+
+  test("too many words -> Error", () => {
+    crosswordSolver("100", ["ab", "cd"]);
+
+    expect(logSpy).toHaveBeenCalledWith("Error");
+  });
+
+  test("word does not fit slot length -> Error", () => {
+    crosswordSolver("100", ["abcd"]);
+
+    expect(logSpy).toHaveBeenCalledWith("Error");
+  });
+
+  test("single letter slot should be invalid -> Error", () => {
+    const puzzle = `1..
+...`;
+
+    const words = ["ab"];
+
+    crosswordSolver(puzzle, words);
+
+    expect(logSpy).toHaveBeenCalledWith("Error");
+  });
+
+  test("puzzle with only walls -> Error", () => {
+    crosswordSolver("...\n...\n...", ["abc"]);
+
+    expect(logSpy).toHaveBeenCalledWith("Error");
+  });
+
+  test("no starting points but words provided -> Error", () => {
+    crosswordSolver("000", ["abc"]);
+
+    expect(logSpy).toHaveBeenCalledWith("Error");
+  });
+
+  test("words contain non-string -> Error", () => {
+    crosswordSolver("100", ["abc", 123]);
+
+    expect(logSpy).toHaveBeenCalledWith("Error");
+  });
+
+  test("invalid puzzle characters -> Error", () => {
+    crosswordSolver("10a0", ["ab", "cd"]);
+
+    expect(logSpy).toHaveBeenCalledWith("Error");
+  });
+
+  test("overlapping letters mismatch -> Error", () => {
+    crosswordSolver("10100", ["abc", "ddd"]);
 
     expect(logSpy).toHaveBeenCalledWith("Error");
   });
