@@ -1,4 +1,11 @@
-function canPlace(grid, word, slot) {
+
+
+function solve(grid, slots, words) {
+
+
+
+//helper function
+function canPlace( word, slot) {
   const { i, j, dir } = slot;
   for (let k = 0; k < word.length; k++) {
     const r = dir === "h" ? i : i + k;
@@ -8,7 +15,7 @@ function canPlace(grid, word, slot) {
   return true;
 }
 
-function place(grid, word, slot) {
+function place( word, slot) {
   const changed = [];
   const { i, j, dir } = slot;
   for (let k = 0; k < word.length; k++) {
@@ -22,11 +29,16 @@ function place(grid, word, slot) {
   return changed;
 }
 
-function unplace(grid, changed) {
+function unplace( changed) {
   for (const [r, c] of changed) grid[r][c] = "0";
 }
 
-function solve(grid, slots, words) {
+
+
+
+
+
+
   const used = new Array(words.length).fill(false);
   console.log(used, words);
   let solutions = 0;
