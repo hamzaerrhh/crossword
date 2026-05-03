@@ -3,6 +3,9 @@ const {
   geometricVerticalWordStart,
 } = require("./helper");
 
+/**
+ * get the starting points (verts and horizo)
+ */
 function buildExplicitStarts(grid) {
   const h = grid.length;
   const w = grid[0].length;

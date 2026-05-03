@@ -12,10 +12,13 @@ function crosswordSolver(puzzle, words) {
     .trim()
     .split("\n")
     .map((r) => r.split(""));
+
   const h = grid.length;
   const w = grid[0].length;
 
   const starts = buildExplicitStarts(grid);
+
+  console.log(starts);
   if (!starts) {
     console.log("Error");
     return;
@@ -44,6 +47,34 @@ function crosswordSolver(puzzle, words) {
   }
 }
 
-crosswordSolver("10a0", ["ab", "cd"]);
+const puzzle = `...1...........
+..1000001000...
+...0....0......
+.1......0...1..
+.0....100000000
+100000..0...0..
+.0.....1001000.
+.0.1....0.0....
+.10000000.0....
+.0.0......0....
+.0.0.....100...
+...0......0....
+..........0....`;
 
+const words = [
+  "sun",
+  "sunglasses",
+  "suncream",
+  "swimming",
+  "bikini",
+  "beach",
+  "icecream",
+  "tan",
+  "deckchair",
+  "sand",
+  "seaside",
+  "sandals",
+].reverse();
+
+crosswordSolver(puzzle, words);
 module.exports = crosswordSolver;
